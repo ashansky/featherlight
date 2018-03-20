@@ -2,7 +2,7 @@
  * Featherlight - ultra slim jQuery lightbox
  * Version 1.7.12 - http://noelboss.github.io/featherlight/
  *
- * Copyright 2017, Noël Raoul Bossart (http://www.noelboss.com)
+ * Copyright 2018, Noël Raoul Bossart (http://www.noelboss.com)
  * MIT Licensed.
 **/
 (function($) {
@@ -141,7 +141,8 @@
 		onKeyUp:        $.noop,                /* Called on key up for the frontmost featherlight */
 		onResize:       $.noop,                /* Called after new content and when a window is resized */
 		type:           null,                  /* Specify type of lightbox. If unset, it will check for the targetAttrs value. */
-		contentFilters: ['jquery', 'image', 'html', 'ajax', 'iframe', 'text'], /* List of content filters to use to determine the content */
+        contentFilters: ['jquery', 'image', 'html', 'ajax', 'iframe', 'text'], /* List of content filters to use to determine the content */
+		dropIE8Support: false,                 /* */
 
 		/*** methods ***/
 		/* setup iterates over a single instance of featherlight and prepares the background and binds the events */
@@ -368,15 +369,20 @@
 				process: function(url)  {
 					var self = this,
 						deferred = $.Deferred(),
-						img = new Image(),
 						$img = $('<img src="'+url+'" alt="" class="'+self.namespace+'-image" />');
-					img.onload  = function() {
-						/* Store naturalWidth & height for IE8 */
-						$img.naturalWidth = img.width; $img.naturalHeight = img.height;
+
+					if ( self.dropIE8Support ) {
 						deferred.resolve( $img );
-					};
-					img.onerror = function() { deferred.reject($img); };
-					img.src = url;
+					} else {
+						var img = new Image();
+						img.onload  = function() {
+							/* Store naturalWidth & height for IE8 */
+							$img.naturalWidth = img.width; $img.naturalHeight = img.height;
+							deferred.resolve( $img );
+						};
+						img.onerror = function() { deferred.reject($img); };
+						img.src = url;
+					}
 					return deferred.promise();
 				}
 			},
